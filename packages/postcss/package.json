@@ -10,14 +10,14 @@
     "tailwind",
     "tailwindcss"
   ],
-  "homepage": "https://github.com/klyng/tailcloak/tree/main/packages/postcss#readme",
+  "homepage": "https://github.com/klynglabs/tailcloak/tree/main/packages/postcss#readme",
   "bugs": {
-    "url": "https://github.com/klyng/tailcloak/issues"
+    "url": "https://github.com/klynglabs/tailcloak/issues"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/klyng/tailcloak.git",
+    "url": "git+https://github.com/klynglabs/tailcloak.git",
     "directory": "packages/postcss"
   },
   "files": [

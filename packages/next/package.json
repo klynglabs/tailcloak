@@ -12,14 +12,14 @@
     "turbopack",
     "webpack"
   ],
-  "homepage": "https://github.com/klyng/tailcloak/tree/main/packages/next#readme",
+  "homepage": "https://github.com/klynglabs/tailcloak/tree/main/packages/next#readme",
   "bugs": {
-    "url": "https://github.com/klyng/tailcloak/issues"
+    "url": "https://github.com/klynglabs/tailcloak/issues"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/klyng/tailcloak.git",
+    "url": "git+https://github.com/klynglabs/tailcloak.git",
     "directory": "packages/next"
   },
   "files": [
