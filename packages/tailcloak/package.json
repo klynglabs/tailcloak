@@ -1,0 +1,68 @@
+{
+  "name": "tailcloak",
+  "version": "0.0.0",
+  "description": "Tailwind CSS v4 class name obfuscator. The framework-agnostic core behind @tailcloak/next, @tailcloak/vite and @tailcloak/postcss.",
+  "keywords": [
+    "class names",
+    "css",
+    "mangle",
+    "minify",
+    "obfuscate",
+    "obfuscator",
+    "tailwind",
+    "tailwindcss"
+  ],
+  "homepage": "https://github.com/aarmful/tailcloak/tree/main/packages/tailcloak#readme",
+  "bugs": {
+    "url": "https://github.com/aarmful/tailcloak/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aarmful/tailcloak.git",
+    "directory": "packages/tailcloak"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "bun test",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "jiti": "^2.7.0",
+    "magic-string": "^1.4.3",
+    "oxc-parser": "^0.154.0",
+    "postcss": "^8.5.30",
+    "postcss-selector-parser": "^7.1.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/node": "^4.3.3",
+    "publint": "^0.3.25",
+    "tailwindcss": "^4.3.3",
+    "tsdown": "^0.23.1"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

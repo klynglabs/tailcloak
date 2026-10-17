@@ -1,0 +1,77 @@
+{
+  "name": "@tailcloak/next",
+  "version": "0.0.0",
+  "description": "Obfuscate Tailwind CSS v4 class names in Next.js production builds. One line in next.config, Turbopack and webpack.",
+  "keywords": [
+    "next",
+    "nextjs",
+    "obfuscate",
+    "tailcloak",
+    "tailwind",
+    "tailwindcss",
+    "turbopack",
+    "webpack"
+  ],
+  "homepage": "https://github.com/aarmful/tailcloak/tree/main/packages/next#readme",
+  "bugs": {
+    "url": "https://github.com/aarmful/tailcloak/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aarmful/tailcloak.git",
+    "directory": "packages/next"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./css-loader": {
+      "import": "./dist/css-loader.mjs",
+      "require": "./dist/css-loader.cjs"
+    },
+    "./loader": {
+      "import": "./dist/loader.mjs",
+      "require": "./dist/loader.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "bun test",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@tailcloak/postcss": "^0.0.0",
+    "postcss": "^8.5.30",
+    "tailcloak": "^0.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "next": "^16.4.1",
+    "publint": "^0.3.25",
+    "tailwindcss": "^4.3.3",
+    "tsdown": "^0.23.1"
+  },
+  "peerDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "next": ">=15.3.0",
+    "tailwindcss": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

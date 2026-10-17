@@ -1,0 +1,61 @@
+{
+  "name": "@tailcloak/vite",
+  "version": "0.0.0",
+  "description": "Vite plugin that obfuscates Tailwind CSS v4 class names in production builds.",
+  "keywords": [
+    "obfuscate",
+    "tailcloak",
+    "tailwind",
+    "tailwindcss",
+    "vite",
+    "vite-plugin"
+  ],
+  "homepage": "https://github.com/aarmful/tailcloak/tree/main/packages/vite#readme",
+  "bugs": {
+    "url": "https://github.com/aarmful/tailcloak/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aarmful/tailcloak.git",
+    "directory": "packages/vite"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "bun test",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "postcss": "^8.5.30",
+    "tailcloak": "^0.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "publint": "^0.3.25",
+    "tailwindcss": "^4.3.3",
+    "tsdown": "^0.23.1",
+    "vite": "^8.3.4"
+  },
+  "peerDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "tailwindcss": "^4.1.0",
+    "vite": ">=6.0.0"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

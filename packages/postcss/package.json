@@ -1,0 +1,68 @@
+{
+  "name": "@tailcloak/postcss",
+  "version": "0.0.0",
+  "description": "PostCSS plugin for tailcloak: runs Tailwind CSS v4, then obfuscates its utility classes.",
+  "keywords": [
+    "obfuscate",
+    "postcss",
+    "postcss-plugin",
+    "tailcloak",
+    "tailwind",
+    "tailwindcss"
+  ],
+  "homepage": "https://github.com/aarmful/tailcloak/tree/main/packages/postcss#readme",
+  "bugs": {
+    "url": "https://github.com/aarmful/tailcloak/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aarmful/tailcloak.git",
+    "directory": "packages/postcss"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./obfuscate": {
+      "import": "./dist/obfuscate.mjs",
+      "require": "./dist/obfuscate.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "bun test",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "tailcloak": "^0.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "postcss": "^8.5.30",
+    "publint": "^0.3.25",
+    "tailwindcss": "^4.3.3",
+    "tsdown": "^0.23.1"
+  },
+  "peerDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "postcss": "^8.4.0"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

@@ -1,0 +1,10 @@
+@import "tailwindcss" source(none);
+@source inline("flex p-4 text-sm hover:bg-red-500 md:grid group group-hover:underline sm:p-[3px] btn");
+
+@utility btn {
+  border-radius: 9999px;
+}
+
+.not-tailwind {
+  color: red;
+}

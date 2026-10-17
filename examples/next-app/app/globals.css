@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@source "../../ui/src";
+
+@utility card {
+  border-radius: var(--radius-xl);
+  padding: --spacing(6);
+}
