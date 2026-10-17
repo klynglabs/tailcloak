@@ -10,14 +10,14 @@
     "vite",
     "vite-plugin"
   ],
-  "homepage": "https://github.com/aarmful/tailcloak/tree/main/packages/vite#readme",
+  "homepage": "https://github.com/klyng/tailcloak/tree/main/packages/vite#readme",
   "bugs": {
-    "url": "https://github.com/aarmful/tailcloak/issues"
+    "url": "https://github.com/klyng/tailcloak/issues"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aarmful/tailcloak.git",
+    "url": "git+https://github.com/klyng/tailcloak.git",
     "directory": "packages/vite"
   },
   "files": [
