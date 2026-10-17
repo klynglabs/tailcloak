@@ -1,5 +1,13 @@
 # @tailcloak/vite
 
+## 0.1.1
+
+### Patch Changes
+
+- 55b4f46: Publish with npm provenance.
+- Updated dependencies [55b4f46]
+  - tailcloak@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

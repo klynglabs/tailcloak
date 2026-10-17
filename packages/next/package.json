@@ -1,6 +1,6 @@
 {
   "name": "@tailcloak/next",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Obfuscate Tailwind CSS v4 class names in Next.js production builds. One line in next.config, Turbopack and webpack.",
   "keywords": [
     "next",
@@ -55,9 +55,9 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@tailcloak/postcss": "^0.1.0",
+    "@tailcloak/postcss": "^0.1.1",
     "postcss": "^8.5.30",
-    "tailcloak": "^0.1.0"
+    "tailcloak": "^0.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",

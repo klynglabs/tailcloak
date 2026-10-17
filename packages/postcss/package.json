@@ -1,6 +1,6 @@
 {
   "name": "@tailcloak/postcss",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "PostCSS plugin for tailcloak: runs Tailwind CSS v4, then obfuscates its utility classes.",
   "keywords": [
     "obfuscate",
@@ -49,7 +49,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "tailcloak": "^0.1.0"
+    "tailcloak": "^0.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
