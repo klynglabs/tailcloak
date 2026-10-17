@@ -1,6 +1,6 @@
 {
   "name": "tailcloak",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tailwind CSS v4 class name obfuscator. The framework-agnostic core behind @tailcloak/next, @tailcloak/vite and @tailcloak/postcss.",
   "keywords": [
     "class names",
