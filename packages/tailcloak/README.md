@@ -40,7 +40,7 @@ export default defineConfig({
 });
 ```
 
-`tailcloak.config.{ts,mts,cts,js,mjs,cjs}` are all picked up. Options passed to the plugin override the file.
+`tailcloak.config.{ts,mts,cts,js,mjs,cjs}` are all picked up. The file is looked up in the project folder, then in parent folders up to the repository or workspace root, so one file can serve every app in a monorepo. Options passed to the plugin override the file.
 
 | Option       | Default                                              | Description                                                                                                                   |
 | ------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -53,7 +53,7 @@ export default defineConfig({
 | `attributes` | `["class", "className"]`                             | JSX attributes / object keys holding classes. Any `*ClassName` attribute (e.g. `iconClassName`) is always included.           |
 | `functions`  | `cn clsx cx classnames classNames twMerge twJoin tw` | clsx-style helpers whose arguments are classes. `cva` and `tv` are supported natively.                                        |
 | `exclude`    | `[]`                                                 | Strings or RegExps for classes that must keep their names, e.g. classes toggled by third-party scripts.                       |
-| `sources`    | `[]`                                                 | Extra folders, relative to `root`, whose class strings are combined like your own. See [Monorepos](#monorepos).               |
+| `sources`    | `@source` folders                                    | Extra folders, relative to `root`, whose class strings are combined like your own. See [Monorepos](#monorepos).               |
 | `manifest`   | none                                                 | Path, relative to `root`, of a JSON file mapping every obfuscated name back to its classes. For debugging production markup.  |
 | `root`       | project root                                         | Where to look for the config file, stylesheets and sources.                                                                   |
 
@@ -91,16 +91,36 @@ Strings joined at runtime still get one name each: `cn("px-4 py-2", variants[var
 
 ## Monorepos
 
-Components from a workspace package (say `packages/ui`) are obfuscated as long as your bundler compiles them from source, but they get one name per class: the build only scans the app's own folder for class strings. List the package's sources to combine them too, and make sure Tailwind scans them:
+Put one `tailcloak.config.ts` at the repository root. Every app finds it, so the apps need no config of their own:
 
 ```ts
-tailcloak({ sources: ["../../packages/ui/src"] });
+// tailcloak.config.ts
+export default {
+  prefix: "tc_",
+};
 ```
 
-```css
-@import "tailwindcss";
-@source "../../packages/ui/src";
+```ts
+// apps/web/next.config.ts
+export default withTailcloak(nextConfig);
 ```
+
+Components from a workspace package (say `packages/ui`) are combined like the app's own as long as Tailwind scans them with `@source`, which it needs anyway, and your bundler compiles them from source:
+
+```css
+/* apps/web/app/globals.css */
+@import "tailwindcss";
+@source "../../../packages/ui/src";
+```
+
+With Turborepo, list the root config so changing it rebuilds the apps:
+
+```json
+// turbo.json
+{ "globalDependencies": ["tailcloak.config.ts"] }
+```
+
+Every app uses the same `seed`, so a shared component gets the same names everywhere. Give an app its own `seed` (in its own `tailcloak.config.ts`, which wins over the root one) if apps with different Tailwind themes load their CSS into the same page.
 
 Packages loaded prebuilt from `node_modules` are never rewritten. See the limitations below.
 

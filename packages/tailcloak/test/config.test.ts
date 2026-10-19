@@ -1,6 +1,57 @@
 import { describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { deserializeConfig, resolveConfig, serializeConfig } from "../src/config.ts";
+import {
+  deserializeConfig,
+  findConfigFile,
+  loadConfig,
+  resolveConfig,
+  serializeConfig,
+} from "../src/config.ts";
+
+function tree(files: Record<string, string>): string {
+  const dir = mkdtempSync(join(tmpdir(), "tailcloak-"));
+  for (const [path, content] of Object.entries(files)) {
+    const file = join(dir, path);
+    mkdirSync(join(file, ".."), { recursive: true });
+    writeFileSync(file, content);
+  }
+  return dir;
+}
+
+describe("loadConfig", () => {
+  test("finds a config file in a parent folder", async () => {
+    const dir = tree({
+      "package.json": `{ "workspaces": ["apps/*"] }`,
+      "tailcloak.config.mjs": `export default { prefix: "tc_" };`,
+      "apps/web/package.json": `{}`,
+    });
+    const root = join(dir, "apps/web");
+    const config = await loadConfig({}, { root });
+    expect(config.prefix).toBe("tc_");
+    expect(config.root).toBe(root);
+  });
+
+  test("prefers the nearest config file", () => {
+    const dir = tree({
+      "pnpm-workspace.yaml": "",
+      "tailcloak.config.mjs": `export default {};`,
+      "apps/web/tailcloak.config.ts": `export default {};`,
+    });
+    expect(findConfigFile(join(dir, "apps/web"))).toBe(join(dir, "apps/web/tailcloak.config.ts"));
+  });
+
+  test("stops at the repository root", () => {
+    const dir = tree({
+      "tailcloak.config.mjs": `export default {};`,
+      "repo/.git/HEAD": "",
+      "repo/apps/web/package.json": `{}`,
+    });
+    expect(findConfigFile(join(dir, "repo/apps/web"))).toBeUndefined();
+  });
+});
 
 describe("resolveConfig", () => {
   test("applies defaults", () => {

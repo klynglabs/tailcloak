@@ -78,6 +78,19 @@ describe("obfuscateCss", () => {
     expect(atomic).toContain(`"${n("md:grid")} ${n("p-4")}"`);
   });
 
+  test("folders listed with @source are combined without config", async () => {
+    const shared = join(FIXTURE, "../shared/card.tsx");
+    const code = await Bun.file(shared).text();
+    const config = resolveConfig({ root: join(FIXTURE, "../linked"), enabled: true });
+    const n = createNamer(config);
+    const combined = combinedName(n, ["md:grid", "p-4"]);
+    const root = postcss.parse(compiled);
+    const { dependencies } = await obfuscateCss(root, config);
+    expect(root.toString()).toContain(`:is(.${n("md:grid")},.${combined})`);
+    expect(dependencies).toContain(shared);
+    expect((await obfuscateJs(code, shared, config)).result!.code).toContain(`"${combined}"`);
+  });
+
   test("writes a manifest of every name", async () => {
     const manifest = join(mkdtempSync(join(tmpdir(), "tailcloak-")), "out/manifest.json");
     const { n } = await run({ manifest });

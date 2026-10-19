@@ -1,5 +1,5 @@
-import { existsSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 
 export type ClassMatcher = string | RegExp;
 
@@ -60,10 +60,10 @@ export interface TailcloakConfig {
   /** Classes that must never be obfuscated, e.g. classes toggled by third-party scripts. */
   exclude?: ClassMatcher[];
   /**
-   * Extra source folders, relative to `root`, whose class strings are combined like your own,
-   * e.g. a shared UI package in a monorepo: `["../../packages/ui/src"]`. Files outside `root`
-   * and these folders are still obfuscated, one name per class. The folders must be compiled
-   * by your bundler (not loaded from `node_modules`), and Tailwind must scan them (`@source`).
+   * Extra source folders, relative to `root`, whose class strings are combined like your own.
+   * Folders listed with `@source` in your Tailwind stylesheet are already included, so this is
+   * rarely needed. Files outside `root` and these folders are still obfuscated, one name per
+   * class. The folders must be compiled by your bundler (not loaded from `node_modules`).
    *
    * @default []
    */
@@ -75,7 +75,8 @@ export interface TailcloakConfig {
    */
   manifest?: string;
   /**
-   * Project root used to find the config file and Tailwind entry stylesheets.
+   * Project root used to find Tailwind entry stylesheets and sources. The config file is looked
+   * up here, then in parent folders up to the repository or workspace root.
    *
    * @default process.cwd()
    */
@@ -152,12 +153,26 @@ export function resolveConfig(config: TailcloakConfig = {}): ResolvedConfig {
   };
 }
 
-export function findConfigFile(root: string): string | undefined {
-  for (const name of CONFIG_FILES) {
-    const file = join(root, name);
-    if (existsSync(file)) return file;
+function isWorkspaceRoot(dir: string): boolean {
+  if (existsSync(join(dir, ".git")) || existsSync(join(dir, "pnpm-workspace.yaml"))) return true;
+  try {
+    return "workspaces" in JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
+  } catch {
+    return false;
   }
-  return undefined;
+}
+
+export function findConfigFile(root: string): string | undefined {
+  let dir = resolve(root);
+  while (true) {
+    for (const name of CONFIG_FILES) {
+      const file = join(dir, name);
+      if (existsSync(file)) return file;
+    }
+    const parent = dirname(dir);
+    if (parent === dir || isWorkspaceRoot(dir)) return undefined;
+    dir = parent;
+  }
 }
 
 const fileCache = new Map<string, { mtime: number; config: TailcloakConfig }>();
