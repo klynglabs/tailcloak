@@ -4,7 +4,10 @@ Obfuscates Tailwind CSS v4 class names in Next.js production builds, with Turbop
 
 ```bash
 npm i -D @tailcloak/next
+npx tailcloak init
 ```
+
+`init` writes a `tailcloak.config.ts` with a random secret seed at your repository root. Commit it. Production builds fail without a seed.
 
 ```ts
 // next.config.ts
@@ -24,7 +27,10 @@ Options go in `tailcloak.config.ts`, or as the second argument: `withTailcloak(n
 // tailcloak.config.ts
 import { defineConfig } from "@tailcloak/next";
 
-export default defineConfig({ prefix: "tc_" });
+export default defineConfig({
+  seed: "56a7f08edca7918eb4a618e92e183ded",
+  prefix: "tc_",
+});
 ```
 
 ## How it works

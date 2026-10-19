@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import { withTailcloak } from "../src/index.ts";
 
+const SEED = "test-seed-0123456789";
+
 const FIXTURE = join(import.meta.dir, "../../tailcloak/test/fixtures/app");
 const context = { defaultConfig: {} };
 
@@ -10,7 +12,7 @@ describe("withTailcloak", () => {
   test("adds JS and CSS rules for Turbopack and webpack", async () => {
     const config = await withTailcloak(
       { reactStrictMode: true, turbopack: { rules: { "*.svg": { loaders: ["svgr"] } } } },
-      { root: FIXTURE, enabled: true },
+      { root: FIXTURE, enabled: true, seed: SEED },
     )("phase-production-build", context);
 
     expect(config.reactStrictMode).toBe(true);
@@ -45,7 +47,7 @@ describe("withTailcloak", () => {
           return c;
         },
       }),
-      { root: FIXTURE, enabled: true },
+      { root: FIXTURE, enabled: true, seed: SEED },
     )("x", context);
     config.webpack!({}, {} as never);
     expect(called).toBe(true);
