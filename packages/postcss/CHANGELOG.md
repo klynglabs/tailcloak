@@ -1,5 +1,12 @@
 # @tailcloak/postcss
 
+## 0.3.0
+
+### Patch Changes
+
+- Updated dependencies [750238a]
+  - tailcloak@0.3.0
+
 ## 0.2.0
 
 ### Patch Changes
