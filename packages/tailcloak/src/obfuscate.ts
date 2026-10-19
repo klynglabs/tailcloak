@@ -8,7 +8,7 @@ import { transformCss } from "./css.ts";
 import { createNamer, type Namer } from "./hash.ts";
 import { createPrefilter, transformJs, type JsTransformResult } from "./js.ts";
 import { collectCombinations, isProjectSource } from "./sources.ts";
-import { getClassifier } from "./tailwind.ts";
+import { getClassifier, type Classifier } from "./tailwind.ts";
 
 interface Helpers {
   name: Namer;
@@ -33,6 +33,11 @@ function getHelpers(config: ResolvedConfig): Helpers {
   return entry;
 }
 
+function withStylesheetSources(config: ResolvedConfig, classifier: Classifier): ResolvedConfig {
+  if (classifier.sources.length === 0) return config;
+  return { ...config, sources: [...new Set([...config.sources, ...classifier.sources])] };
+}
+
 export interface ObfuscateResult<T> {
   result: T | null;
   dependencies: string[];
@@ -52,7 +57,7 @@ export async function obfuscateJs(
     name,
     config,
     sourceMap: options.sourceMap,
-    combine: config.combine && isProjectSource(config, file),
+    combine: config.combine && isProjectSource(withStylesheetSources(config, classifier), file),
   });
   return { result, dependencies: [...classifier.entries] };
 }
@@ -64,7 +69,9 @@ export async function obfuscateCss(
   if (!config.enabled) return { result: null, dependencies: [] };
   const classifier = await getClassifier(config);
   const { name } = getHelpers(config);
-  const combinations = config.combine ? collectCombinations(config, classifier, name) : undefined;
+  const combinations = config.combine
+    ? collectCombinations(withStylesheetSources(config, classifier), classifier, name)
+    : undefined;
   const { renamed } = transformCss(root, { classifier, name, combinations });
   if (config.manifest) {
     const entries = new Map<string, string>();

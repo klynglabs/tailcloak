@@ -21,7 +21,7 @@ Usage and options: [packages/tailcloak/README.md](packages/tailcloak/README.md).
 | `packages/postcss`    | `@tailcloak/postcss` | PostCSS plugins (Tailwind + obfuscate, or obfuscate only).             |
 | `examples/next-app`   | private              | Next 16 app, built with Turbopack and webpack as an end-to-end test.   |
 | `examples/vite-react` | private              | Vite 8 + React app, built as an end-to-end test.                       |
-| `examples/ui`         | private              | Shared component package both examples import (tests `sources`).       |
+| `examples/ui`         | private              | Shared component package both examples import (tests `@source`).       |
 
 ## Development
 

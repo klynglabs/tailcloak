@@ -1,5 +1,6 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "globalDependencies": ["examples/tailcloak.config.ts"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

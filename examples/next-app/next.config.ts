@@ -5,4 +5,4 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 };
 
-export default withTailcloak(nextConfig);
+export default withTailcloak(nextConfig, { manifest: ".next/tailcloak-manifest.json" });

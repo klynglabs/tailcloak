@@ -12,6 +12,26 @@ interface DesignSystem {
 
 type LoadDesignSystem = (css: string, options: { base: string }) => Promise<DesignSystem>;
 
+interface SourcePattern {
+  base: string;
+  pattern: string;
+}
+
+interface Compiled {
+  sources: (SourcePattern & { negated: boolean })[];
+  root: "none" | SourcePattern | null;
+}
+
+type Compile = (
+  css: string,
+  options: { base: string; onDependency: (path: string) => void },
+) => Promise<Compiled>;
+
+interface TailwindNode {
+  loadDesignSystem: LoadDesignSystem;
+  compile: Compile;
+}
+
 export const TAILWIND_IMPORT_RE =
   /@import\s+(?:url\()?["']tailwindcss(?:\/[^"']*)?["']|@tailwind\s+utilities/;
 const MAX_DEPTH = 6;
@@ -57,15 +77,41 @@ function resolveTailwindNode(root: string): string {
   );
 }
 
-async function importTailwindNode(root: string): Promise<LoadDesignSystem> {
+async function importTailwindNode(root: string): Promise<TailwindNode> {
   const url = pathToFileURL(resolveTailwindNode(root)).href;
   const mod = await import(/* webpackIgnore: true */ /* turbopackIgnore: true */ url);
-  return mod.__unstable__loadDesignSystem;
+  return { loadDesignSystem: mod.__unstable__loadDesignSystem, compile: mod.compile };
+}
+
+const GLOB_RE = /[*?{[]/;
+
+function sourceDir({ base, pattern }: SourcePattern): string | undefined {
+  const parts: string[] = [];
+  for (const part of pattern.split("/")) {
+    if (GLOB_RE.test(part)) break;
+    parts.push(part);
+  }
+  const dir = resolve(base, parts.join("/"));
+  return statSync(dir, { throwIfNoEntry: false })?.isDirectory() ? dir : undefined;
+}
+
+async function findSourceDirs(compile: Compile, css: string, base: string): Promise<string[]> {
+  let compiled: Compiled;
+  try {
+    compiled = await compile(css, { base, onDependency() {} });
+  } catch {
+    return [];
+  }
+  const patterns = compiled.sources.filter((s) => !s.negated);
+  if (compiled.root && compiled.root !== "none")
+    patterns.push({ ...compiled.root, negated: false });
+  return patterns.map(sourceDir).filter((dir) => dir !== undefined);
 }
 
 export interface Classifier {
   test(token: string): boolean;
   entries: readonly string[];
+  sources: readonly string[];
 }
 
 const MARKER_RE = /^(?:[\w-]+:)?(?:group|peer)(?:\/\S+)?$/;
@@ -82,10 +128,12 @@ export function createClassifier(
   designSystems: DesignSystem[],
   exclude: ClassMatcher[],
   entries: readonly string[] = [],
+  sources: readonly string[] = [],
 ): Classifier {
   const cache = new Map<string, boolean>();
   return {
     entries,
+    sources,
     test(token) {
       let result = cache.get(token);
       if (result !== undefined) return result;
@@ -141,11 +189,21 @@ export function getClassifier(config: ResolvedConfig): Promise<Classifier> {
         `[tailcloak] No Tailwind stylesheet found under ${config.root}. Set "css" in tailcloak.config.ts. Nothing will be obfuscated.`,
       );
     }
-    const loadDesignSystem = await importTailwindNode(config.root);
-    const systems = await Promise.all(
-      entries.map((file) => loadDesignSystem(readFileSync(file, "utf8"), { base: dirname(file) })),
+    const { loadDesignSystem, compile } = await importTailwindNode(config.root);
+    const stylesheets = entries.map((file) => ({
+      css: readFileSync(file, "utf8"),
+      base: dirname(file),
+    }));
+    const [systems, sources] = await Promise.all([
+      Promise.all(stylesheets.map(({ css, base }) => loadDesignSystem(css, { base }))),
+      Promise.all(stylesheets.map(({ css, base }) => findSourceDirs(compile, css, base))),
+    ]);
+    return createClassifier(
+      systems,
+      config.exclude,
+      entries,
+      [...new Set(sources.flat())].toSorted(),
     );
-    return createClassifier(systems, config.exclude, entries);
   })();
   classifiers.set(id, { key, checkedAt: now, promise });
   promise.catch(() => classifiers.delete(id));
