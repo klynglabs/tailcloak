@@ -62,7 +62,7 @@
     },
     "packages/next": {
       "name": "@tailcloak/next",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "dependencies": {
         "@tailcloak/postcss": "^0.1.1",
         "postcss": "^8.5.30",
@@ -83,7 +83,7 @@
     },
     "packages/postcss": {
       "name": "@tailcloak/postcss",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "dependencies": {
         "tailcloak": "^0.1.1",
       },
@@ -101,7 +101,7 @@
     },
     "packages/tailcloak": {
       "name": "tailcloak",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "dependencies": {
         "jiti": "^2.7.0",
         "magic-string": "^1.4.3",
@@ -121,7 +121,7 @@
     },
     "packages/vite": {
       "name": "@tailcloak/vite",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "dependencies": {
         "postcss": "^8.5.30",
         "tailcloak": "^0.1.1",
