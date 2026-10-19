@@ -4,7 +4,10 @@ Vite plugin that obfuscates Tailwind CSS v4 class names in production builds. Ea
 
 ```bash
 npm i -D @tailcloak/vite
+npx tailcloak init
 ```
+
+`init` writes a `tailcloak.config.ts` with a random secret seed at your repository root. Commit it. Production builds fail without a seed.
 
 ```ts
 // vite.config.ts
@@ -25,7 +28,10 @@ Options go in `tailcloak.config.ts`, or inline: `tailcloak({ prefix: "tc_" })`.
 // tailcloak.config.ts
 import { defineConfig } from "@tailcloak/vite";
 
-export default defineConfig({ prefix: "tc_" });
+export default defineConfig({
+  seed: "56a7f08edca7918eb4a618e92e183ded",
+  prefix: "tc_",
+});
 ```
 
 ## How it works

@@ -27,27 +27,32 @@ Requires Tailwind CSS v4.1+ and Node.js 20.19+.
 
 ## Configuration
 
-Pass options to the bundler plugin, e.g. `tailcloak({ prefix: "tc_" })` or `withTailcloak(nextConfig, { prefix: "tc_" })`. That's enough for most projects.
+The only required option is a secret `seed`. Create it once:
 
-You can also put them in `tailcloak.config.ts` at the project root, which every integration reads. Use the file when several tools build the same project (say Next and Storybook), or when the options outgrow one line:
+```sh
+npx tailcloak init
+```
+
+This writes a `tailcloak.config.ts` with a random seed at your repository root. Commit it. A production build without a seed fails and prints one you can paste in. Add other options to the same file:
 
 ```ts
 // tailcloak.config.ts
 import { defineConfig } from "@tailcloak/next"; // or "@tailcloak/vite", or "tailcloak"
 
 export default defineConfig({
+  seed: "56a7f08edca7918eb4a618e92e183ded",
   prefix: "tc_",
 });
 ```
 
-`tailcloak.config.{ts,mts,cts,js,mjs,cjs}` are all picked up. The file is looked up in the project folder, then in parent folders up to the repository or workspace root, so one file can serve every app in a monorepo. Options passed to the plugin override the file.
+Every integration reads this file, so tools that build the same project (say Next and Storybook) share it. `tailcloak.config.{ts,mts,cts,js,mjs,cjs}` are all picked up. Config files in parent folders, up to the repository or workspace root, are read too, and the closest file wins option by option (see [Monorepos](#monorepos)). Options passed to the plugin, e.g. `tailcloak({ prefix: "tc_" })`, win over every file.
 
 | Option       | Default                                              | Description                                                                                                                   |
 | ------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `enabled`    | production builds                                    | Turn obfuscation on or off. Dev servers are left alone by default, so DevTools stay readable.                                 |
 | `prefix`     | `""`                                                 | Prepended to every name. Must be a valid CSS identifier start (`tc_`, `x-`, `_`).                                             |
 | `length`     | `6`                                                  | Hash characters after the prefix (3–16). Longer means fewer collisions; a collision fails the build with a clear error.       |
-| `seed`       | `""`                                                 | Salt for the hash. Change it to reshuffle every name.                                                                         |
+| `seed`       | required                                             | Secret salt for the hash, 16+ characters. `npx tailcloak init` creates one. Change it to reshuffle every name.                |
 | `combine`    | `true`                                               | Collapse each class string into one name. Set `false` to rename each class on its own.                                        |
 | `css`        | auto                                                 | Tailwind entry stylesheet(s), relative to `root`. By default every non-module `.css` file that imports `tailwindcss` is used. |
 | `attributes` | `["class", "className"]`                             | JSX attributes / object keys holding classes. Any `*ClassName` attribute (e.g. `iconClassName`) is always included.           |
@@ -91,11 +96,12 @@ Strings joined at runtime still get one name each: `cn("px-4 py-2", variants[var
 
 ## Monorepos
 
-Put one `tailcloak.config.ts` at the repository root. Every app finds it, so the apps need no config of their own:
+Config files stack. `npx tailcloak init` puts the seed in a `tailcloak.config.ts` at the repository root, even when run from an app folder. Add shared options there, and only what differs in an app's own `tailcloak.config.ts`. Most apps need no file at all:
 
 ```ts
-// tailcloak.config.ts
+// tailcloak.config.ts (repository root)
 export default {
+  seed: "56a7f08edca7918eb4a618e92e183ded",
   prefix: "tc_",
 };
 ```
@@ -104,6 +110,8 @@ export default {
 // apps/web/next.config.ts
 export default withTailcloak(nextConfig);
 ```
+
+Each app's `package.json` name is mixed into the hash, so apps sharing a seed still get different names.
 
 Components from a workspace package (say `packages/ui`) are combined like the app's own as long as Tailwind scans them with `@source`, which it needs anyway, and your bundler compiles them from source:
 
@@ -119,8 +127,6 @@ With Turborepo, list the root config so changing it rebuilds the apps:
 // turbo.json
 { "globalDependencies": ["tailcloak.config.ts"] }
 ```
-
-Every app uses the same `seed`, so a shared component gets the same names everywhere. Give an app its own `seed` (in its own `tailcloak.config.ts`, which wins over the root one) if apps with different Tailwind themes load their CSS into the same page.
 
 Packages loaded prebuilt from `node_modules` are never rewritten. See the limitations below.
 

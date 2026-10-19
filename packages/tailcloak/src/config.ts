@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
@@ -32,9 +33,10 @@ export interface TailcloakConfig {
    */
   combine?: boolean;
   /**
-   * Salt mixed into every hash. Change it to reshuffle all names (e.g. per release).
-   *
-   * @default ""
+   * Secret salt mixed into every hash, at least 16 characters. Required whenever obfuscation is
+   * enabled: without it, anyone could compute your names. `npx tailcloak init` writes a random
+   * one to your root config. The app's `package.json` name is always mixed in too, so apps
+   * sharing a seed still get different names. Change it to reshuffle all names.
    */
   seed?: string;
   /**
@@ -75,8 +77,8 @@ export interface TailcloakConfig {
    */
   manifest?: string;
   /**
-   * Project root used to find Tailwind entry stylesheets and sources. The config file is looked
-   * up here, then in parent folders up to the repository or workspace root.
+   * Project root used to find Tailwind entry stylesheets and sources. Config files are read from
+   * here and every parent folder up to the repository or workspace root, closest file winning.
    *
    * @default process.cwd()
    */
@@ -137,12 +139,14 @@ export function resolveConfig(config: TailcloakConfig = {}): ResolvedConfig {
   }
   const css = config.css === undefined ? null : [config.css].flat();
   const root = config.root ?? process.cwd();
+  const enabled = config.enabled ?? process.env.NODE_ENV === "production";
+  if (enabled) checkSeed(config.seed);
   return {
-    enabled: config.enabled ?? process.env.NODE_ENV === "production",
+    enabled,
     prefix,
     length,
     combine: config.combine ?? true,
-    seed: config.seed ?? "",
+    seed: `${config.seed ?? ""}\u0000${packageName(root)}`,
     css: css && css.length > 0 ? css : null,
     attributes: config.attributes ?? ["class", "className"],
     functions: config.functions ?? DEFAULT_FUNCTIONS,
@@ -153,33 +157,69 @@ export function resolveConfig(config: TailcloakConfig = {}): ResolvedConfig {
   };
 }
 
-function isWorkspaceRoot(dir: string): boolean {
-  if (existsSync(join(dir, ".git")) || existsSync(join(dir, "pnpm-workspace.yaml"))) return true;
+export const MIN_SEED_LENGTH = 16;
+
+export function generateSeed(): string {
+  return randomBytes(16).toString("hex");
+}
+
+function checkSeed(seed: string | undefined) {
+  if (typeof seed === "string" && seed.length >= MIN_SEED_LENGTH) return;
+  const problem = seed
+    ? `"seed" must be at least ${MIN_SEED_LENGTH} characters, so nobody can guess it.`
+    : `No "seed" set. Without a secret seed, anyone can compute your class names.`;
+  throw new Error(
+    `[tailcloak] ${problem}\n\n` +
+      `Run \`npx tailcloak init\`, or add this to tailcloak.config.ts at your repository root:\n\n` +
+      `  seed: "${generateSeed()}",\n`,
+  );
+}
+
+function readPackageJson(dir: string): Record<string, unknown> | undefined {
   try {
-    return "workspaces" in JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
+    return JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
   } catch {
-    return false;
+    return undefined;
   }
 }
 
-export function findConfigFile(root: string): string | undefined {
-  let dir = resolve(root);
-  while (true) {
-    for (const name of CONFIG_FILES) {
-      const file = join(dir, name);
-      if (existsSync(file)) return file;
-    }
-    const parent = dirname(dir);
-    if (parent === dir || isWorkspaceRoot(dir)) return undefined;
-    dir = parent;
+function packageName(root: string): string {
+  for (let dir = resolve(root); ; dir = dirname(dir)) {
+    const pkg = readPackageJson(dir);
+    if (pkg) return typeof pkg.name === "string" ? pkg.name : "";
+    if (dirname(dir) === dir) return "";
   }
+}
+
+function isWorkspaceRoot(dir: string): boolean {
+  if (existsSync(join(dir, ".git")) || existsSync(join(dir, "pnpm-workspace.yaml"))) return true;
+  return readPackageJson(dir)?.workspaces !== undefined;
+}
+
+export function findWorkspaceRoot(from: string): string {
+  for (let dir = resolve(from); ; dir = dirname(dir)) {
+    if (isWorkspaceRoot(dir)) return dir;
+    if (dirname(dir) === dir) return resolve(from);
+  }
+}
+
+export function findConfigFiles(root: string): string[] {
+  const files: string[] = [];
+  for (let dir = resolve(root); ; dir = dirname(dir)) {
+    const file = CONFIG_FILES.map((name) => join(dir, name)).find((path) => existsSync(path));
+    if (file) files.unshift(file);
+    if (dirname(dir) === dir || isWorkspaceRoot(dir)) return files;
+  }
+}
+
+async function loadConfigFiles(root: string): Promise<TailcloakConfig> {
+  const configs = await Promise.all(findConfigFiles(root).map(importConfigFile));
+  return Object.assign({}, ...configs.map(stripUndefined));
 }
 
 const fileCache = new Map<string, { mtime: number; config: TailcloakConfig }>();
 
-export async function loadConfigFile(root: string): Promise<TailcloakConfig> {
-  const file = findConfigFile(root);
-  if (!file) return {};
+async function importConfigFile(file: string): Promise<TailcloakConfig> {
   const mtime = statSync(file).mtimeMs;
   const cached = fileCache.get(file);
   if (cached?.mtime === mtime) return cached.config;
@@ -200,7 +240,7 @@ export async function loadConfig(
   defaults: TailcloakConfig = {},
 ): Promise<ResolvedConfig> {
   const root = inline.root ?? defaults.root ?? process.cwd();
-  const fromFile = await loadConfigFile(root);
+  const fromFile = await loadConfigFiles(root);
   return resolveConfig({ ...defaults, ...fromFile, ...stripUndefined(inline), root });
 }
 

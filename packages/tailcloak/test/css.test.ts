@@ -8,7 +8,7 @@ import postcss from "postcss";
 import { resolveConfig } from "../src/config.ts";
 import { combinedName, createNamer } from "../src/hash.ts";
 import { obfuscateCss, obfuscateJs } from "../src/obfuscate.ts";
-import { FIXTURE } from "./helpers.ts";
+import { FIXTURE, SEED } from "./helpers.ts";
 
 const compiled = String.raw`
 .flex { color: red }
@@ -21,7 +21,7 @@ const compiled = String.raw`
 }`;
 
 async function run(options = {}) {
-  const config = resolveConfig({ root: FIXTURE, enabled: true, ...options });
+  const config = resolveConfig({ root: FIXTURE, enabled: true, seed: SEED, ...options });
   const root = postcss.parse(compiled);
   const { dependencies } = await obfuscateCss(root, config);
   return { css: root.toString(), config, dependencies, n: createNamer(config) };
@@ -58,7 +58,7 @@ describe("obfuscateCss", () => {
   });
 
   test("files outside the project are never combined", async () => {
-    const config = resolveConfig({ root: FIXTURE, enabled: true });
+    const config = resolveConfig({ root: FIXTURE, enabled: true, seed: SEED });
     const n = createNamer(config);
     const outside = join(FIXTURE, "node_modules/lib/index.js");
     const js = (await obfuscateJs(`cn("flex p-4")`, outside, config)).result!.code;
@@ -73,7 +73,7 @@ describe("obfuscateCss", () => {
     expect(css).toContain(`:is(.${n("md:grid")},.${combined})`);
     expect((await obfuscateJs(code, shared, config)).result!.code).toContain(`"${combined}"`);
 
-    const plain = resolveConfig({ root: FIXTURE, enabled: true });
+    const plain = resolveConfig({ root: FIXTURE, enabled: true, seed: SEED });
     const atomic = (await obfuscateJs(code, shared, plain)).result!.code;
     expect(atomic).toContain(`"${n("md:grid")} ${n("p-4")}"`);
   });
@@ -81,7 +81,7 @@ describe("obfuscateCss", () => {
   test("folders listed with @source are combined without config", async () => {
     const shared = join(FIXTURE, "../shared/card.tsx");
     const code = await Bun.file(shared).text();
-    const config = resolveConfig({ root: join(FIXTURE, "../linked"), enabled: true });
+    const config = resolveConfig({ root: join(FIXTURE, "../linked"), enabled: true, seed: SEED });
     const n = createNamer(config);
     const combined = combinedName(n, ["md:grid", "p-4"]);
     const root = postcss.parse(compiled);

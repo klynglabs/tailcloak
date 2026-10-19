@@ -7,6 +7,8 @@ import { createNamer, obfuscateJs, resolveConfig, type TailcloakConfig } from "t
 
 import tailcloak from "../src/index.ts";
 
+const SEED = "test-seed-0123456789";
+
 const FIXTURE = join(import.meta.dir, "../../tailcloak/test/fixtures/app");
 const file = join(FIXTURE, "styles.css");
 const source = readFileSync(file, "utf8");
@@ -15,6 +17,7 @@ async function build(options: TailcloakConfig = {}) {
   const plugin = tailcloak({
     root: FIXTURE,
     enabled: true,
+    seed: SEED,
     tailwind: { base: FIXTURE },
     ...options,
   });
@@ -24,7 +27,7 @@ async function build(options: TailcloakConfig = {}) {
 
 describe("@tailcloak/postcss", () => {
   test("obfuscates utilities and keeps everything else", async () => {
-    const n = createNamer(resolveConfig({}));
+    const n = createNamer(resolveConfig({ root: FIXTURE, seed: SEED }));
     const { css } = await build({ combine: false });
     expect(css).not.toMatch(/\.flex\s*\{/);
     expect(css).toContain(`.${n("flex")}`);
@@ -34,7 +37,7 @@ describe("@tailcloak/postcss", () => {
   });
 
   test("CSS and JS agree on every name, including the prefix", async () => {
-    const options = { root: FIXTURE, enabled: true, prefix: "tc_" };
+    const options = { root: FIXTURE, enabled: true, seed: SEED, prefix: "tc_" };
     const { css, messages } = await build(options);
     const page = join(FIXTURE, "page.tsx");
     const code = readFileSync(page, "utf8");

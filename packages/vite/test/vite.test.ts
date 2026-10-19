@@ -6,6 +6,8 @@ import { build, type Rolldown } from "vite";
 
 import tailcloak from "../src/index.ts";
 
+const SEED = "test-seed-0123456789";
+
 const root = join(import.meta.dir, "fixture");
 
 async function run(options: Parameters<typeof tailcloak>[0] = {}) {
@@ -14,7 +16,7 @@ async function run(options: Parameters<typeof tailcloak>[0] = {}) {
     logLevel: "silent",
     configFile: false,
     build: { write: false, minify: false },
-    plugins: [tailwindcss(), tailcloak({ prefix: "tc_", ...options })],
+    plugins: [tailwindcss(), tailcloak({ prefix: "tc_", seed: SEED, ...options })],
   })) as Rolldown.RolldownOutput;
   const files = output.output;
   const js = files.flatMap((f) => (f.type === "chunk" ? [f.code] : [])).join("\n");
