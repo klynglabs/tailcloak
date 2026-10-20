@@ -17,7 +17,7 @@ const strings = [...js.matchAll(/className:(["'`])(.*?)\1/g)].map((m) =>
 const classes = new Set(strings.flatMap((s) => s.split(/\s+/).filter(Boolean)));
 const plain = [...classes].filter((c) => !c.startsWith(PREFIX));
 const missing = [...classes].filter((c) => c.startsWith(PREFIX) && !css.includes(`.${c}`));
-const leaked = ["flex", "p-8", "text-4xl", "bg-indigo-600"].filter((c) =>
+const leaked = ["flex", "p-8", "text-2xl", "bg-zinc-900"].filter((c) =>
   new RegExp(`\\.${c.replace(/-/g, "\\-")}[\\s{:,]`).test(css),
 );
 const multi = strings.filter((s) => s.split(/\s+/).length > 1);
