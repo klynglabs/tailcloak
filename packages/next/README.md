@@ -1,6 +1,14 @@
 # @tailcloak/next
 
-Obfuscates Tailwind CSS v4 class names in Next.js production builds, with Turbopack and webpack. Each class string becomes one short, prefixed name.
+[![npm](https://img.shields.io/npm/v/@tailcloak/next?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@tailcloak/next)
+[![downloads](https://img.shields.io/npm/dm/@tailcloak/next?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/@tailcloak/next)
+[![CI](https://img.shields.io/github/actions/workflow/status/klynglabs/tailcloak/ci.yml?branch=main&style=flat&colorA=000000&colorB=000000)](https://github.com/klynglabs/tailcloak/actions/workflows/ci.yml)
+
+Obfuscates Tailwind CSS v4 class names in Next.js production builds, with Turbopack or webpack. Each class string becomes one short, prefixed name.
+
+Requires Next.js 15.3+, Tailwind CSS v4.1+ and Node.js 20.19+.
+
+## Setup
 
 ```bash
 npm i -D @tailcloak/next
@@ -19,28 +27,20 @@ const nextConfig: NextConfig = {};
 export default withTailcloak(nextConfig);
 ```
 
-That's the whole setup. Keep your stock `postcss.config.mjs` with `@tailwindcss/postcss`. Run `next build` and inspect the output; `next dev` is left untouched.
+Keep your stock `postcss.config.mjs` with `@tailwindcss/postcss`. `next build` obfuscates; `next dev` is left untouched.
 
-Options go in `tailcloak.config.ts`, or as the second argument: `withTailcloak(nextConfig, { prefix: "tc_" })`.
+## Options
 
-```ts
-// tailcloak.config.ts
-import { defineConfig } from "@tailcloak/next";
+Set options in `tailcloak.config.ts`, or pass them as the second argument: `withTailcloak(nextConfig, { prefix: "tc_" })`.
 
-export default defineConfig({
-  seed: "56a7f08edca7918eb4a618e92e183ded",
-  prefix: "tc_",
-});
-```
+See [`tailcloak`](https://github.com/klynglabs/tailcloak/tree/main/packages/tailcloak#readme) for every option, what gets rewritten, and the limitations.
 
 ## How it works
 
 `withTailcloak` adds two loaders, for both Turbopack and webpack:
 
-- **Tailwind entry stylesheets** (non-module `.css` files that import `tailwindcss`) are compiled by Tailwind and obfuscated before Next's PostCSS runs. `@tailwindcss/postcss` then finds no Tailwind at-rules left and returns at once, so nothing is compiled twice.
+- **Tailwind entry stylesheets** (non-module `.css` files that import `tailwindcss`) are compiled by Tailwind and obfuscated before Next's PostCSS runs. `@tailwindcss/postcss` then finds no Tailwind at-rules left, so nothing is compiled twice.
 - **JS/TS/JSX modules** outside `node_modules` get their class names renamed to match.
-
-Requires Next.js 15.3+, Tailwind CSS v4.1+ and Node.js 20.19+. See [`tailcloak`](https://www.npmjs.com/package/tailcloak) for every option, what gets rewritten, and the limitations.
 
 ## License
 

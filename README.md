@@ -1,52 +1,39 @@
 # tailcloak
 
-Tailwind CSS v4 class obfuscation as a drop-in bundler plugin. Each class string becomes one short, prefixed name:
+[![npm](https://img.shields.io/npm/v/tailcloak?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/tailcloak)
+[![downloads](https://img.shields.io/npm/dm/tailcloak?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/tailcloak)
+[![CI](https://img.shields.io/github/actions/workflow/status/klynglabs/tailcloak/ci.yml?branch=main&style=flat&colorA=000000&colorB=000000)](https://github.com/klynglabs/tailcloak/actions/workflows/ci.yml)
+
+Obfuscates Tailwind CSS v4 class names at build time. Each class string becomes one short, prefixed name:
 
 ```html
 <!-- before -->
-<main class="mx-auto flex max-w-2xl flex-col gap-6 p-8 md:p-16" />
+<main class="mx-auto flex max-w-2xl flex-col gap-6 p-8 md:p-16"></main>
 <!-- after -->
-<main class="tc_UwcxCM" />
+<main class="tc_UwcxCM"></main>
 ```
-
-Usage and options: [packages/tailcloak/README.md](packages/tailcloak/README.md).
 
 ## Packages
 
-| Path                  | npm                  | What                                                                   |
-| --------------------- | -------------------- | ---------------------------------------------------------------------- |
-| `packages/tailcloak`  | `tailcloak`          | Framework-agnostic core: config, hashing, JS and CSS transforms.       |
-| `packages/next`       | `@tailcloak/next`    | `withTailcloak()` for Next.js (Turbopack and webpack). One-step setup. |
-| `packages/vite`       | `@tailcloak/vite`    | Vite plugin, used next to `@tailwindcss/vite`.                         |
-| `packages/postcss`    | `@tailcloak/postcss` | PostCSS plugins (Tailwind + obfuscate, or obfuscate only).             |
-| `examples/next-app`   | private              | Next 16 app, built with Turbopack and webpack as an end-to-end test.   |
-| `examples/vite-react` | private              | Vite 8 + React app, built as an end-to-end test.                       |
-| `examples/ui`         | private              | Shared component package both examples import (tests `@source`).       |
+| Package                                  | For                                                      |
+| ---------------------------------------- | -------------------------------------------------------- |
+| [`@tailcloak/next`](packages/next)       | Next.js 15.3+, with Turbopack or webpack                 |
+| [`@tailcloak/vite`](packages/vite)       | Vite 6+                                                  |
+| [`@tailcloak/postcss`](packages/postcss) | Other PostCSS setups, where you rename the JS too        |
+| [`tailcloak`](packages/tailcloak)        | The core: every option, what gets rewritten, limitations |
 
 ## Development
 
-```bash
-bun install
-```
+| Command         | What it does                                                                            |
+| --------------- | --------------------------------------------------------------------------------------- |
+| `bun install`   | Install dependencies.                                                                   |
+| `bun run build` | Build every package and example. `build:packages` builds only the npm packages.         |
+| `bun run start` | Serve the built examples: Next on http://localhost:3000, Vite on http://localhost:4173. |
+| `bun run check` | oxfmt, oxlint, then `typecheck` and `test` in every package.                            |
+| `bun run e2e`   | Build the examples and check that every class is obfuscated and defined in the CSS.     |
 
-```bash
-bun run build
-```
+`examples/` holds a Next 16 app, a Vite 8 + React app, and a shared `ui` package both import (to test `@source`).
 
-```bash
-bun run start
-```
+## License
 
-`build` builds every package and both examples. `start` serves the built examples: Next on http://localhost:3000 and Vite on http://localhost:4173. Use `bun run build:packages` to build only the npm packages.
-
-```bash
-bun run check
-```
-
-`check` runs oxfmt, oxlint, then `typecheck` and `test` in every package.
-
-```bash
-bun run e2e
-```
-
-`e2e` builds both example apps and checks the output: every class in the HTML/JS must be obfuscated and defined in the CSS, and no original utility may remain.
+MIT

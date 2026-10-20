@@ -1,5 +1,9 @@
 # tailcloak
 
+[![npm](https://img.shields.io/npm/v/tailcloak?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/tailcloak)
+[![downloads](https://img.shields.io/npm/dm/tailcloak?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/tailcloak)
+[![CI](https://img.shields.io/github/actions/workflow/status/klynglabs/tailcloak/ci.yml?branch=main&style=flat&colorA=000000&colorB=000000)](https://github.com/klynglabs/tailcloak/actions/workflows/ci.yml)
+
 Obfuscates Tailwind CSS v4 class names at build time. Each class string becomes one short, prefixed name.
 
 ```html
@@ -9,12 +13,12 @@ Obfuscates Tailwind CSS v4 class names at build time. Each class string becomes 
 <main class="tc_UwcxCM"></main>
 ```
 
-This is the framework-agnostic core. Install the package for your bundler:
+This is the framework-agnostic core, and the reference for every option. Install the package for your bundler:
 
 | Package                                                                  | For                                      |
 | ------------------------------------------------------------------------ | ---------------------------------------- |
 | [`@tailcloak/next`](https://www.npmjs.com/package/@tailcloak/next)       | Next.js 15.3+ (Turbopack and webpack)    |
-| [`@tailcloak/vite`](https://www.npmjs.com/package/@tailcloak/vite)       | Vite 6+ (React, Vue, Svelte, Solid, …)   |
+| [`@tailcloak/vite`](https://www.npmjs.com/package/@tailcloak/vite)       | Vite 6+ (React, Preact, Solid, Qwik, …)  |
 | [`@tailcloak/postcss`](https://www.npmjs.com/package/@tailcloak/postcss) | Building blocks for other PostCSS setups |
 | `tailcloak`                                                              | The core API, for writing an integration |
 
