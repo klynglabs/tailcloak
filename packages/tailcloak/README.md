@@ -41,13 +41,15 @@ This writes a `tailcloak.config.ts` with a random seed at your repository root. 
 
 ```ts
 // tailcloak.config.ts
-import { defineConfig } from "@tailcloak/next"; // or "@tailcloak/vite", or "tailcloak"
+import type { TailcloakConfig } from "tailcloak";
 
-export default defineConfig({
+export default {
   seed: "56a7f08edca7918eb4a618e92e183ded",
   prefix: "tc_",
-});
+} satisfies TailcloakConfig;
 ```
+
+`import type` is removed when the config loads, so the file works even where `tailcloak` isn't installed. For type checking, add `tailcloak` to the `devDependencies` next to it. In an app folder, `defineConfig` from `@tailcloak/next` or `@tailcloak/vite` works too.
 
 Every integration reads this file, so tools that build the same project (say Next and Storybook) share it. `tailcloak.config.{ts,mts,cts,js,mjs,cjs}` are all picked up. Config files in parent folders, up to the repository or workspace root, are read too, and the closest file wins option by option (see [Monorepos](#monorepos)). Options passed to the plugin, e.g. `tailcloak({ prefix: "tc_" })`, win over every file.
 
@@ -58,13 +60,40 @@ Every integration reads this file, so tools that build the same project (say Nex
 | `length`     | `6`                                                  | Hash characters after the prefix (3–16). Longer means fewer collisions; a collision fails the build with a clear error.       |
 | `seed`       | required                                             | Secret salt for the hash, 16+ characters. `npx tailcloak init` creates one. Change it to reshuffle every name.                |
 | `combine`    | `true`                                               | Collapse each class string into one name. Set `false` to rename each class on its own.                                        |
-| `css`        | auto                                                 | Tailwind entry stylesheet(s), relative to `root`. By default every non-module `.css` file that imports `tailwindcss` is used. |
+| `css`        | auto                                                 | Tailwind entry stylesheet(s), relative to `root`. Found automatically: see [Finding the stylesheet](#finding-the-stylesheet). |
 | `attributes` | `["class", "className"]`                             | JSX attributes / object keys holding classes. Any `*ClassName` attribute (e.g. `iconClassName`) is always included.           |
 | `functions`  | `cn clsx cx classnames classNames twMerge twJoin tw` | clsx-style helpers whose arguments are classes. `cva` and `tv` are supported natively.                                        |
 | `exclude`    | `[]`                                                 | Strings or RegExps for classes that must keep their names, e.g. classes toggled by third-party scripts.                       |
 | `sources`    | `@source` folders                                    | Extra folders, relative to `root`, whose class strings are combined like your own. See [Monorepos](#monorepos).               |
 | `manifest`   | none                                                 | Path, relative to `root`, of a JSON file mapping every obfuscated name back to its classes. For debugging production markup.  |
 | `root`       | project root                                         | Where to look for the config file, stylesheets and sources.                                                                   |
+
+## Finding the stylesheet
+
+Tailcloak needs your Tailwind entry stylesheet to know which tokens are Tailwind classes. Without `css`, it uses every stylesheet that imports `tailwindcss`, directly or through other `@import`s, and is either:
+
+- a non-module `.css` file under `root`, or
+- imported by a source file under `root`, e.g. `import "@acme/ui/globals.css"`. Package imports resolve through the package's `exports`, so a stylesheet in a shared workspace package is found too.
+
+So all of these work without config:
+
+```tsx
+// app/layout.tsx imports the package's stylesheet directly
+import "@acme/ui/globals.css";
+```
+
+```css
+/* app/globals.css, imported by app/layout.tsx, adds to the package's stylesheet */
+@import "@acme/ui/globals.css";
+```
+
+The production build checks this once at startup and prints the stylesheets it uses:
+
+```
+[tailcloak] Obfuscating Tailwind classes from app/globals.css
+```
+
+If no stylesheet is found, or a path in `css` doesn't exist, it stops with one message instead. Set `css` for anything else, e.g. a stylesheet only linked from HTML outside `root`.
 
 ## What gets rewritten
 
@@ -104,10 +133,12 @@ Config files stack. `npx tailcloak init` puts the seed in a `tailcloak.config.ts
 
 ```ts
 // tailcloak.config.ts (repository root)
+import type { TailcloakConfig } from "tailcloak";
+
 export default {
   seed: "56a7f08edca7918eb4a618e92e183ded",
   prefix: "tc_",
-};
+} satisfies TailcloakConfig;
 ```
 
 ```ts
@@ -117,13 +148,15 @@ export default withTailcloak(nextConfig);
 
 Each app's `package.json` name is mixed into the hash, so apps sharing a seed still get different names.
 
-Components from a workspace package (say `packages/ui`) are combined like the app's own as long as Tailwind scans them with `@source`, which it needs anyway, and your bundler compiles them from source:
+The Tailwind stylesheet can live in the app or in a shared package, as in shadcn's monorepo template. Either way, components from a workspace package (say `packages/ui`) are combined like the app's own as long as Tailwind scans them with `@source`, which it needs anyway, and your bundler compiles them from source:
 
 ```css
-/* apps/web/app/globals.css */
+/* packages/ui/src/globals.css, imported by apps/web as "@acme/ui/globals.css" */
 @import "tailwindcss";
-@source "../../../packages/ui/src";
+@source ".";
 ```
+
+A stylesheet in `packages/ui` needs `tailwindcss` in that package's own `dependencies` or `devDependencies`, so `@import "tailwindcss"` resolves from there.
 
 With Turborepo, list the root config so changing it rebuilds the apps:
 

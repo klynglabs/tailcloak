@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@source "../../ui/src";
+@source ".";
 
 @utility card {
   border-radius: var(--radius-xl);

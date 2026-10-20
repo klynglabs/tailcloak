@@ -32,7 +32,7 @@ Obfuscates Tailwind CSS v4 class names at build time. Each class string becomes 
 | `bun run check` | oxfmt, oxlint, then `typecheck` and `test` in every package.                            |
 | `bun run e2e`   | Build the examples and check that every class is obfuscated and defined in the CSS.     |
 
-`examples/` holds a Next 16 app, a Vite 8 + React app, and a shared `ui` package both import (to test `@source`).
+`examples/` holds a Next 16 app, a Vite 8 + React app, and a shared `ui` package both import (to test `@source`). Both get their Tailwind stylesheet from `ui`: the Vite app imports it directly, like a shadcn monorepo, and the Next app through an `@import` in its own `globals.css`.
 
 ## License
 

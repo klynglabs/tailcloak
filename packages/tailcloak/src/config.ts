@@ -2,6 +2,8 @@ import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
+import { formatMessage } from "./log.ts";
+
 export type ClassMatcher = string | RegExp;
 
 export interface TailcloakConfig {
@@ -41,8 +43,9 @@ export interface TailcloakConfig {
   seed?: string;
   /**
    * Tailwind entry stylesheet(s), relative to `root`. They define which tokens are
-   * Tailwind classes. Auto-detected (any non-module `.css` file that imports
-   * `tailwindcss`) when omitted.
+   * Tailwind classes. When omitted, every stylesheet that imports `tailwindcss` and is either
+   * under `root` or imported by a source file under `root` (including through a package's
+   * `exports`) is used.
    */
   css?: string | string[];
   /**
@@ -100,6 +103,12 @@ export interface ResolvedConfig {
   root: string;
 }
 
+export function configError(message: string): Error {
+  const error = new Error(formatMessage(message));
+  error.stack = `Error: ${error.message}`;
+  return error;
+}
+
 export function defineConfig(config: TailcloakConfig): TailcloakConfig {
   return config;
 }
@@ -129,13 +138,13 @@ const PREFIX_RE = /^(?:-?[A-Za-z_][\w-]*)?$/;
 export function resolveConfig(config: TailcloakConfig = {}): ResolvedConfig {
   const prefix = config.prefix ?? "";
   if (!PREFIX_RE.test(prefix)) {
-    throw new Error(
-      `[tailcloak] Invalid prefix "${prefix}". It must be a valid CSS identifier start, e.g. "tc_" or "x-".`,
+    throw configError(
+      `Invalid prefix "${prefix}". It must be a valid CSS identifier start, e.g. "tc_" or "x-".`,
     );
   }
   const length = config.length ?? 6;
   if (!Number.isInteger(length) || length < 3 || length > 16) {
-    throw new Error(`[tailcloak] "length" must be an integer between 3 and 16, got ${length}.`);
+    throw configError(`"length" must be an integer between 3 and 16, got ${length}.`);
   }
   const css = config.css === undefined ? null : [config.css].flat();
   const root = config.root ?? process.cwd();
@@ -168,14 +177,14 @@ function checkSeed(seed: string | undefined) {
   const problem = seed
     ? `"seed" must be at least ${MIN_SEED_LENGTH} characters, so nobody can guess it.`
     : `No "seed" set. Without a secret seed, anyone can compute your class names.`;
-  throw new Error(
-    `[tailcloak] ${problem}\n\n` +
+  throw configError(
+    `${problem}\n\n` +
       `Run \`npx tailcloak init\`, or add this to tailcloak.config.ts at your repository root:\n\n` +
       `  seed: "${generateSeed()}",\n`,
   );
 }
 
-function readPackageJson(dir: string): Record<string, unknown> | undefined {
+export function readPackageJson(dir: string): Record<string, unknown> | undefined {
   try {
     return JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
   } catch {
@@ -229,7 +238,7 @@ async function importConfigFile(file: string): Promise<TailcloakConfig> {
   const mod = await jiti.import<TailcloakConfig | (() => TailcloakConfig)>(file, { default: true });
   const config = typeof mod === "function" ? mod() : mod;
   if (!config || typeof config !== "object") {
-    throw new Error(`[tailcloak] ${file} must default-export a config object.`);
+    throw configError(`${file} must default-export a config object.`);
   }
   fileCache.set(file, { mtime, config });
   return config;

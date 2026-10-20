@@ -27,9 +27,13 @@ export {
   type Combinations,
 } from "./sources.ts";
 export {
+  checkTailwind,
   createClassifier,
   findTailwindEntries,
   getClassifier,
+  isTailwindStylesheet,
   TAILWIND_IMPORT_RE,
+  tailwindEntries,
   type Classifier,
 } from "./tailwind.ts";
+export { formatMessage } from "./log.ts";

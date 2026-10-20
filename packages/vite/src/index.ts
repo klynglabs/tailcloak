@@ -1,12 +1,13 @@
 import postcss from "postcss";
 import {
+  checkTailwind,
   loadConfig,
   obfuscateCss,
   obfuscateJs,
   type ResolvedConfig,
   type TailcloakConfig,
 } from "tailcloak";
-import type { Plugin } from "vite";
+import type { Logger, Plugin } from "vite";
 
 export { defineConfig, type TailcloakConfig } from "tailcloak";
 
@@ -19,16 +20,26 @@ const cleanId = (id: string) => id.replace(/[?#].*$/, "");
 
 export default function tailcloak(options: TailcloakConfig = {}): Plugin[] {
   let config!: Promise<ResolvedConfig>;
+  let logger!: Logger;
+  let logged = false;
 
   return [
     {
       name: "tailcloak:js",
       enforce: "pre",
       configResolved(resolved) {
+        logger = resolved.logger;
         config = loadConfig(options, {
           root: resolved.root,
           enabled: resolved.command === "build",
         });
+      },
+      async buildStart() {
+        const resolved = await config;
+        if (!resolved.enabled) return;
+        const message = checkTailwind(resolved);
+        if (!logged) logger.info(message);
+        logged = true;
       },
       transform: {
         filter: { id: { include: SOURCE_RE, exclude: /\/node_modules\// } },

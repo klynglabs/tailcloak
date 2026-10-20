@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 import {
+  checkTailwind,
   createPrefilter,
   loadConfig,
   serializeConfig,
-  TAILWIND_IMPORT_RE,
   type TailcloakConfig,
 } from "tailcloak";
 
@@ -21,6 +21,8 @@ const CSS_LOADER = "@tailcloak/next/css-loader";
 const SOURCE_GLOB = "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}";
 const SOURCE_RE = /\.[cm]?[jt]sx?$/;
 const CSS_GLOB = "*.css";
+const LOGGED = "TAILCLOAK_LOGGED";
+const CSS_PREFILTER = /@import|@tailwind/;
 
 type WebpackConfig = { module?: { rules?: unknown[] } };
 type WebpackFn = (config: WebpackConfig, context: unknown) => WebpackConfig;
@@ -40,6 +42,11 @@ export function withTailcloak(
       typeof nextConfig === "function" ? await nextConfig(phase, context) : await nextConfig;
     const config = await loadConfig(options);
     if (!config.enabled) return base;
+    const message = checkTailwind(config);
+    if (process.env[LOGGED] !== message) {
+      process.env[LOGGED] = message;
+      console.log(message);
+    }
 
     const loaderOptions = serializeConfig({ ...options, root: config.root });
     const jsLoader = { loader: JS_LOADER, options: loaderOptions };
@@ -51,7 +58,7 @@ export function withTailcloak(
       loaders: [jsLoader],
     });
     addRule(rules, CSS_GLOB, {
-      condition: { all: [{ not: "foreign" }, { content: TAILWIND_IMPORT_RE }] },
+      condition: { content: CSS_PREFILTER },
       loaders: [cssLoader],
     });
 
@@ -66,7 +73,7 @@ export function withTailcloak(
           { test: SOURCE_RE, exclude: /node_modules/, enforce: "pre", use: [jsLoader] },
           {
             // Next disables its built-in CSS support if a rule's `test` or `include` matches `.css`.
-            resource: { and: [/\.css$/], not: [/node_modules/, /\.module\.css$/] },
+            resource: { and: [/\.css$/], not: [/\.module\.css$/] },
             enforce: "pre",
             use: [cssLoader],
           },
