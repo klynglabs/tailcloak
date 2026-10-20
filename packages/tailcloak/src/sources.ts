@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, join, relative } from "node:path";
 
-import type { ResolvedConfig } from "./config.ts";
+import { configError, type ResolvedConfig } from "./config.ts";
 import { combinedName, type Namer } from "./hash.ts";
 import { collectClassSets, createPrefilter } from "./js.ts";
 import type { Classifier } from "./tailwind.ts";
@@ -9,12 +9,13 @@ import type { Classifier } from "./tailwind.ts";
 export const IGNORED_DIRS = new Set(["node_modules", "dist", "build", "out", "coverage", "public"]);
 const SOURCE_RE = /\.[cm]?[jt]sx?$/;
 const DECLARATION_RE = /\.d\.[cm]?ts$/;
-const MAX_DEPTH = 32;
+export const MAX_DEPTH = 32;
 
 export const isScannedDir = (name: string): boolean =>
   !name.startsWith(".") && !IGNORED_DIRS.has(name);
 
-const isSourceName = (name: string): boolean => SOURCE_RE.test(name) && !DECLARATION_RE.test(name);
+export const isSourceName = (name: string): boolean =>
+  SOURCE_RE.test(name) && !DECLARATION_RE.test(name);
 
 type SourceDirs = Pick<ResolvedConfig, "root" | "sources">;
 
@@ -117,8 +118,8 @@ export function collectCombinations(
 }
 
 export function collision(a: string, b: string, name: string): Error {
-  return new Error(
-    `[tailcloak] Hash collision: "${a}" and "${b}" both map to "${name}". ` +
+  return configError(
+    `Hash collision: "${a}" and "${b}" both map to "${name}". ` +
       `Increase "length" or change "seed" in your tailcloak config.`,
   );
 }

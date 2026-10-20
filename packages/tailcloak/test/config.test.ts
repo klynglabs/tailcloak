@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -12,17 +11,7 @@ import {
 } from "../src/config.ts";
 import { createNamer } from "../src/hash.ts";
 import { init } from "../src/init.ts";
-import { SEED } from "./helpers.ts";
-
-function tree(files: Record<string, string>): string {
-  const dir = mkdtempSync(join(tmpdir(), "tailcloak-"));
-  for (const [path, content] of Object.entries(files)) {
-    const file = join(dir, path);
-    mkdirSync(join(file, ".."), { recursive: true });
-    writeFileSync(file, content);
-  }
-  return dir;
-}
+import { SEED, tree } from "./helpers.ts";
 
 describe("loadConfig", () => {
   test("stacks config files from the workspace root down to the app", async () => {
@@ -69,7 +58,10 @@ describe("init", () => {
   test("writes a seeded config at the workspace root once", async () => {
     const dir = tree({ "pnpm-workspace.yaml": "", "apps/web/package.json": `{}` });
     const web = join(dir, "apps/web");
-    expect(init(web)).toContain("Created");
+    expect(init(web)).toContain("add tailcloak to the devDependencies");
+    expect(readFileSync(join(dir, "tailcloak.config.ts"), "utf8")).toContain(
+      "satisfies TailcloakConfig",
+    );
     const config = await loadConfig({ enabled: true }, { root: web });
     expect(config.seed.split("\u0000")[0]).toMatch(/^[0-9a-f]{32}$/);
     expect(init(web)).toContain("already sets a seed");

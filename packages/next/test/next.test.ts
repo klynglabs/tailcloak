@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { withTailcloak } from "../src/index.ts";
@@ -51,5 +53,13 @@ describe("withTailcloak", () => {
     )("x", context);
     config.webpack!({}, {} as never);
     expect(called).toBe(true);
+  });
+
+  test("fails once, at startup, without a Tailwind stylesheet", async () => {
+    const root = mkdtempSync(join(tmpdir(), "tailcloak-"));
+    const config = withTailcloak({}, { root, enabled: true, seed: SEED });
+    await expect(config("phase-production-build", context)).rejects.toThrow(
+      "No Tailwind stylesheet found",
+    );
   });
 });

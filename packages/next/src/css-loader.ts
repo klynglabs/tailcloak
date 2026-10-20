@@ -1,6 +1,6 @@
 import tailcloak from "@tailcloak/postcss";
 import postcss, { type Processor } from "postcss";
-import { deserializeConfig, TAILWIND_IMPORT_RE } from "tailcloak";
+import { deserializeConfig, isTailwindStylesheet } from "tailcloak";
 
 import { toError, type LoaderContext } from "./loader-context.ts";
 
@@ -18,7 +18,7 @@ function getProcessor(rawOptions: Record<string, unknown>): Processor {
 
 export default function tailcloakCssLoader(this: LoaderContext, source: string, map?: unknown) {
   const callback = this.async();
-  if (!TAILWIND_IMPORT_RE.test(source)) return callback(null, source, map);
+  if (!isTailwindStylesheet(this.resourcePath, source)) return callback(null, source, map);
 
   getProcessor(this.getOptions())
     .process(source, {
