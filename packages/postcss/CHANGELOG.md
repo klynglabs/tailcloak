@@ -1,5 +1,14 @@
 # @tailcloak/postcss
 
+## 0.4.0
+
+### Patch Changes
+
+- 55328d8: Clean up the READMEs: add badges, put requirements first, and keep the option reference in one place.
+- Updated dependencies [55328d8]
+- Updated dependencies [4b1afc1]
+  - tailcloak@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes
